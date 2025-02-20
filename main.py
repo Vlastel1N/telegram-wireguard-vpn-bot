@@ -500,10 +500,23 @@ async def Buy_month(call: types.CallbackQuery):
             count = CONFIG['perc_3']
         if(Month_count == 6):
             count = CONFIG['perc_6']
-        bill = await bot.send_invoice(call.message.chat.id, f"Оплата KUBA VPN", f"VPN на {str(Month_count)} мес.", call.data,
-                                        currency="RUB",prices=[
-                    types.LabeledPrice(f"VPN на {str(Month_count)} мес.  Выгода {round(((Month_count - count) / Month_count) * 100)}%", round(count * CONFIG['one_month_cost'] * 100))],
-                                        provider_token=CONFIG["tg_shop_token"])
+        bill = await bot.send_invoice(
+            chat_id=call.message.chat.id,
+            title="Оплата KUBA VPN",
+            description="Быстрый и надёжный VPN для свободы в интернете. Попробуй сейчас!",
+            payload=call.data,
+            currency="RUB",
+            prices=[
+                types.LabeledPrice(
+                    label=f"VPN на {str(Month_count)} мес.  Выгода {round(((Month_count - count) / Month_count) * 100)}%",
+                    amount=round(count * CONFIG['one_month_cost'] * 100)
+                )
+            ],
+            provider_token=CONFIG["tg_shop_token"],
+            need_phone_number=True,  # Запрос номера телефона
+            send_phone_number_to_provider=True,  # Отправка телефона продавцу
+            is_flexible=False
+        )
     await bot.answer_callback_query(call.id)
 
 async def AddTimeToUser(tgid, timetoadd):
