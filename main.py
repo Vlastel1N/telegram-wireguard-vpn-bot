@@ -500,10 +500,11 @@ async def Buy_month(call: types.CallbackQuery):
             await bot.delete_message(call.message.chat.id, call.message.message_id)
 
             # Определяем стоимость подписки с учетом скидки
-            discount_map = {1: CONFIG['perc_1'],
-                            3: CONFIG['perc_3'],
-                            6: CONFIG['perc_6']
-                           }
+            discount_map = {
+                1: CONFIG['perc_1'],
+                3: CONFIG['perc_3'],
+                6: CONFIG['perc_6']
+            }
             if month_count not in discount_map:
                 logging.warning(f"Некорректный выбор количества месяцев: {month_count}")
                 await bot.answer_callback_query(call.id, text="Ошибка: неверное количество месяцев.")
