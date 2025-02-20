@@ -4,16 +4,15 @@ import subprocess
 from datetime import datetime
 import sqlite3
 import time
-
+import uuid
 import aiosqlite
-
+import logging
 import buttons
 import dbworker
 
 from telebot import TeleBot
-from pyqiwip2p import QiwiP2P
-from pyqiwip2p import AioQiwiP2P
 from telebot import asyncio_filters
+from telebot.types import LabeledPrice
 from telebot.async_telebot import AsyncTeleBot
 import emoji as e
 import asyncio
@@ -515,14 +514,14 @@ async def Buy_month(call: types.CallbackQuery):
             payload = f"vpn_{user_id}_{uuid.uuid4()}"
 
             # Логируем детали платежа
-            #logging.info(f"Оплата: {month_count} мес., цена: {total_price / 100} RUB, скидка: {discount_percent}%")
+            logging.info(f"Оплата: {month_count} мес., цена: {total_price / 100} RUB, скидка: {discount_percent}%")
 
             # Отправляем счет на оплату
             bill = await bot.send_invoice(
                 chat_id=call.message.chat.id,
                 title="Оплата KUBA VPN",
                 description=f"Безлимитный и быстрый VPN на {month_count} мес.",
-                payload=payload,  # Уникальный ID платежа
+                invoice_payload=payload,  # Уникальный ID платежа
                 currency="RUB",
                 prices=[LabeledPrice(
                     label=f"VPN на {month_count} мес. (Выгода {discount_percent}%)",
@@ -535,7 +534,7 @@ async def Buy_month(call: types.CallbackQuery):
                 is_flexible=False
             )
         except Exception as e:
-            # logging.error(f"Ошибка при обработке оплаты: {e}")
+            logging.error(f"Ошибка при обработке оплаты: {e}")
             await bot.answer_callback_query(call.id, text="Произошла ошибка. Попробуйте снова.")
     
     await bot.answer_callback_query(call.id)
