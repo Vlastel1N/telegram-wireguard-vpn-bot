@@ -488,58 +488,37 @@ async def Work_with_Message(m: types.Message):
 
 
 @bot.callback_query_handler(func=lambda c: 'BuyMonth:' in c.data)
-async def Buy_month(call: types.CallbackQuery):
-    """Обработчик покупки подписки на VPN"""
-    user_id = call.from_user.id
-    user_dat = await User.GetInfo(user_id)
+async def buy_month(call: types.CallbackQuery):
+    user_dat = await User.GetInfo(call.from_user.id)
     payment_info = await user_dat.PaymentInfo()
     
     if payment_info is None:
-        try:
-            month_count = int(call.data.split(":")[1])
-            await bot.delete_message(call.message.chat.id, call.message.message_id)
-
-            # Определяем стоимость подписки с учетом скидки
-            discount_map = {
-                1: CONFIG['perc_1'],
-                3: CONFIG['perc_3'],
-                6: CONFIG['perc_6']
-            }
-            if month_count not in discount_map:
-                logging.warning(f"Некорректный выбор количества месяцев: {month_count}")
-                await bot.answer_callback_query(call.id, text="Ошибка: неверное количество месяцев.")
-                return
-
-            discounted_months = discount_map[month_count]
-            discount_percent = round(((month_count - discounted_months) / month_count) * 100)
-            total_price = round(discounted_months * CONFIG['one_month_cost'] * 100)  # В копейках
-
-            # Уникальный payload (Telegram требует, чтобы он был уникален)
-            payload = f"vpn_{user_id}_{uuid.uuid4()}"
-
-            # Логируем детали платежа
-            logging.info(f"Оплата: {month_count} мес., цена: {total_price / 100} RUB, скидка: {discount_percent}%")
-
-            # Отправляем счет на оплату
-            bill = await bot.send_invoice(
-                chat_id=call.message.chat.id,
-                title="Оплата KUBA VPN",
-                description=f"Безлимитный и быстрый VPN на {month_count} мес.",
-                invoice_payload=payload,  # Уникальный ID платежа
-                currency="RUB",
-                prices=[LabeledPrice(
-                    label=f"VPN на {month_count} мес. (Выгода {discount_percent}%)",
+        month_count = int(str(call.data).split(":")[1])
+        await bot.delete_message(call.message.chat.id, call.message.id)
+        
+        discount_map = {
+            1: CONFIG['perc_1'],
+            3: CONFIG['perc_3'],
+            6: CONFIG['perc_6']
+        }
+        count = discount_map.get(month_count)
+        discount_percentage = round(((month_count - count) / month_count) * 100)
+        total_price = round(count * CONFIG['one_month_cost'] * 100)
+            
+        bill = await bot.send_invoice(
+            chat_id=call.message.chat.id,
+            title="Оплата KUBA VPN",
+            description=f"Оплата VPN на {month_count} мес.",
+            call.data,
+            provider_token=CONFIG["tg_shop_token"]
+            currency="RUB",
+            prices=[
+                types.LabeledPrice(
+                    label=f"VPN на {str(month_count)} мес.  Выгода {discount_percentage}%",
                     amount=total_price
-                )],
-                provider_token=CONFIG["tg_shop_token"],
-                need_phone_number=True,  # Запрос номера телефона
-                send_phone_number_to_provider=True,  # Отправка телефона продавцу
-                is_flexible=False
-            )
-        except Exception as e:
-            logging.error(f"Ошибка при обработке оплаты: {e}")
-            await bot.answer_callback_query(call.id, text="Произошла ошибка. Попробуйте снова.")
-    
+                )
+            ]
+        )
     await bot.answer_callback_query(call.id)
 
 async def AddTimeToUser(tgid, timetoadd):
