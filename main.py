@@ -488,37 +488,22 @@ async def Work_with_Message(m: types.Message):
 
 
 @bot.callback_query_handler(func=lambda c: 'BuyMonth:' in c.data)
-async def buy_month(call: types.CallbackQuery):
+async def Buy_month(call: types.CallbackQuery):
     user_dat = await User.GetInfo(call.from_user.id)
     payment_info = await user_dat.PaymentInfo()
-    
     if payment_info is None:
-        month_count = int(str(call.data).split(":")[1])
+        Month_count = int(str(call.data).split(":")[1])
         await bot.delete_message(call.message.chat.id, call.message.id)
-        
-        discount_map = {
-            1: CONFIG['perc_1'],
-            3: CONFIG['perc_3'],
-            6: CONFIG['perc_6']
-        }
-        count = discount_map.get(month_count)
-        discount_percentage = round(((month_count - count) / month_count) * 100)
-        total_price = round(count * CONFIG['one_month_cost'] * 100)
-            
-        bill = await bot.send_invoice(
-            chat_id=call.message.chat.id,
-            title="Оплата KUBA VPN",
-            description=f"Оплата VPN на {month_count} мес.",
-            call.data,
-            provider_token=CONFIG["tg_shop_token"]
-            currency="RUB",
-            prices=[
-                types.LabeledPrice(
-                    label=f"VPN на {str(month_count)} мес.  Выгода {discount_percentage}%",
-                    amount=total_price
-                )
-            ]
-        )
+        if(Month_count == 1):
+            count = CONFIG['perc_1']
+        if(Month_count == 3):
+            count = CONFIG['perc_3']
+        if(Month_count == 6):
+            count = CONFIG['perc_6']
+        bill = await bot.send_invoice(call.message.chat.id, f"Оплата KUBA VPN", f"VPN на {str(Month_count)} мес.", call.data,
+                                        currency="RUB",prices=[
+                    types.LabeledPrice(f"VPN на {str(Month_count)} мес.  Выгода {round(((Month_count - count) / Month_count) * 100)}%", round(count * CONFIG['one_month_cost'] * 100))],
+                                        provider_token=CONFIG["tg_shop_token"])
     await bot.answer_callback_query(call.id)
 
 async def AddTimeToUser(tgid, timetoadd):
