@@ -503,7 +503,7 @@ async def Buy_month(call: types.CallbackQuery):
         bill = await bot.send_invoice(call.message.chat.id, f"Оплата VPN", f"VPN на {str(Month_count)} мес. Выгода {round(((Month_count - count) / Month_count) * 100)}%", call.data,
                                         currency="RUB",prices=[
                     types.LabeledPrice(f"VPN на {str(Month_count)} мес.  Выгода {round(((Month_count - count) / Month_count) * 100)}%", round(count * CONFIG['one_month_cost']) * 100)],
-                                        provider_token=CONFIG["tg_shop_token"])
+                                        provider_token=CONFIG["tg_shop_token"], need_phone_number= True, send_phone_number_to_provider= True)
     await bot.answer_callback_query(call.id)
 
 async def AddTimeToUser(tgid, timetoadd):
